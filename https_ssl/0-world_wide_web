@@ -1,26 +1,24 @@
+
 #!/usr/bin/env bash
 
-get_record() {
-    subdomain="$1"
-    domain="$2"
+domain=$1
 
-    result=$(dig "$subdomain.$domain" | awk '/ANSWER SECTION:/{getline; print $4, $5}')
-    record_type=$(echo "$result" | awk '{print $1}')
-    destination=$(echo "$result" | awk '{print $2}')
+display_subdomain() {
+    subdomain=$1
 
-    echo "The subdomain $subdomain is a $record_type record and points to $destination"
+    dig "$subdomain.$domain" +noall +answer |
+    awk -v subdomain="$subdomain" '
+    NR == 1 {
+        print "The subdomain " subdomain " is a " $4 " record and points to " $5
+    }'
 }
 
-if [ "$#" -eq 1 ]; then
-    domain="$1"
-
-    get_record "www" "$domain"
-    get_record "lb-01" "$domain"
-    get_record "web-01" "$domain"
-    get_record "web-02" "$domain"
-elif [ "$#" -eq 2 ]; then
-    domain="$1"
-    subdomain="$2"
-
-    get_record "$subdomain" "$domain"
+if [ -n "$2" ]; then
+    display_subdomain "$2"
+else
+    for subdomain in www lb-01 web-01 web-02
+    do
+        display_subdomain "$subdomain"
+    done
 fi
+
