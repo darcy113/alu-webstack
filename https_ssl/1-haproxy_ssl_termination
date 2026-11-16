@@ -1,31 +1,31 @@
 global
     log /dev/log local0
     log /dev/log local1 notice
-    chroot /var/lib/haproxy
-    stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
-    stats timeout 30s
-    user haproxy
-    group haproxy
     daemon
-
-    ca-base /etc/ssl/certs
-    crt-base /etc/ssl/private
+    maxconn 2048
+    tune.ssl.default-dh-param 2048
 
 defaults
     log global
     mode http
     option httplog
     option dontlognull
-    timeout connect 5000
-    timeout client 50000
-    timeout server 50000
+    timeout connect 5s
+    timeout client 30s
+    timeout server 30s
 
-frontend web_front
+frontend career_insights
     bind *:80
+    default_backend web_servers
+
+frontend https_front
     bind *:443 ssl crt /etc/haproxy/certs/www.darcy113.tech.pem
     default_backend web_servers
 
 backend web_servers
     balance roundrobin
-    server web-01 34.226.246.158:80 check
-    server web-02 18.207.221.178:80 check
+    option httpchk GET /
+    http-check expect status 200
+
+    server web01 34.226.246.158:80 check
+    server web02 18.207.221.178:80 check
