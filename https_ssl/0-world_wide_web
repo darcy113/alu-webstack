@@ -1,6 +1,5 @@
 
 #!/usr/bin/env bash
-
 domain=$1
 
 display_subdomain() {
